@@ -37,32 +37,35 @@ abstract class Employee {
         return sallary;
     }
 
+    
     public void setId(int id) {
-        if(id > 0) {
-            this.id = id;
-        } 
-        else {
-            System.out.println("Invalid ID. ID must be greater than 0.");
+        if(id <= 0) {
+            throw new IllegalArgumentException(
+                "ID must be greater than 0."
+            );
         }
+        this.id = id;
     }
 
     public void setName(String name) {
-        if(name != null && name.length() > 0) {
-            this.name = name;
-        } 
-        else {
-            System.out.println("Invalid name. Name cannot be null or empty.");
+        if(name == null || name.trim().isEmpty()
+                || name.matches("\\d+")) {
+            throw new IllegalArgumentException(
+                "Name cannot be empty or contain only numbers."
+            );
         }
+        this.name = name;
     }
 
     public void setSalary(float sallary) {
-        if(sallary >= 0) {
-            this.sallary = sallary;
-        } 
-        else {
-            System.out.println("Invalid salary. Salary must be non-negative.");
+        if(!Float.isFinite(sallary) || sallary < 0) {
+            throw new IllegalArgumentException(
+                "Salary must be a finite, non-negative number."
+            );
         }
+        this.sallary = sallary;
     }
+
 
     public abstract void displayRole();
 }
@@ -74,19 +77,22 @@ class Manager extends Employee implements Bonus {
     private int teamSize;
 
     Manager(int id, String name, float sallary, int teamSize) {
-
-        super(id, name, sallary);
-
-        this.teamSize = teamSize;
-    }
+    super(id, name, sallary);
+    setTeamSize(teamSize);
+   }
 
     public int getTeamSize() {
         return teamSize;
     }
 
     public void setTeamSize(int teamSize) {
-        this.teamSize = teamSize;
+    if(teamSize < 0) {
+        throw new IllegalArgumentException(
+            "Team size cannot be negative."
+        );
     }
+    this.teamSize = teamSize;
+}
 
     @Override
     public void displayRole() {
@@ -109,16 +115,21 @@ class Developer extends Employee implements Bonus, Work {
 
         super(id, name, sallary);
 
-        this.programmingLanguage = programmingLanguage;
+        setProgrammingLanguage(programmingLanguage);
     }
 
     public String getProgrammingLanguage() {
         return programmingLanguage;
     }
 
-    public void setProgrammingLanguage(String programmingLanguage) {
-        this.programmingLanguage = programmingLanguage;
+   public void setProgrammingLanguage(String programmingLanguage) {
+    if(programmingLanguage == null || programmingLanguage.trim().isEmpty()) {
+        throw new IllegalArgumentException(
+            "Programming language cannot be empty."
+        );
     }
+    this.programmingLanguage = programmingLanguage;
+}
 
     @Override
     public void displayRole() {
@@ -179,12 +190,33 @@ public class Employee_MS {
             a.nextLine();
             continue;
         }
+        
+        if(ID <= 0) {
+            System.out.println("Employee ID must be greater than 0.");
+            continue;
+        }
+
+         
+        boolean duplicateID = false;
+
+        for(int j = 0; j < emp.size(); j++) {
+            if(emp.get(j).getId() == ID) {
+                duplicateID = true;
+                break;
+            }
+        }
+
+        if(duplicateID) {
+            System.out.println("Employee ID already exists.");
+            continue;
+        }
 
 
         
-        System.out.println("Enter the employee name:");
+       System.out.println("Enter the employee name:");
 
-        String name = a.next();
+        a.nextLine();
+        String name = a.nextLine();
 
         if(name.matches("\\d+")) {
             System.out.println("Name cannot contain only numbers.");
@@ -194,7 +226,7 @@ public class Employee_MS {
         if(name.trim().isEmpty()) {
             System.out.println("Name cannot be empty.");
             continue;
-        }
+        }   
 
 
        
@@ -211,16 +243,17 @@ public class Employee_MS {
             continue;
         }
 
-        if(sallary < 0) {
-            System.out.println("Salary cannot be negative.");
-            continue;
+        if(!Float.isFinite(sallary) || sallary < 0) {
+        System.out.println("Salary must be finite and non-negative.");
+        continue;
         }
 
 
         Employee e;
 
+      
+      try {
       if(type == 1) {
-
 
         System.out.println("Enter team size:");
 
@@ -236,35 +269,35 @@ public class Employee_MS {
         }
 
         if(teamSize < 0) {
-            System.out.println("Team size cannot be negative."); 
+            System.out.println("Team size cannot be negative.");
             continue;
         }
 
-
-    e = new Manager(ID, name, sallary, teamSize);
-
-    }
-    else if(type == 2) {
-
-        System.out.println("Enter programming language:");  
-        String programmingLanguage = a.next();
-
-        e = new Developer(ID, name, sallary, programmingLanguage);
-
+        e = new Manager(ID, name, sallary, teamSize);
     }
     else {
 
-        System.out.println("Invalid employee type");
-        continue;
+        System.out.println("Enter programming language:");
+        String programmingLanguage = a.next();
+
+        e = new Developer(ID, name, sallary, programmingLanguage);
     }
 
     emp.add(e);
+    System.out.println("Employee added successfully.");
+    }
+    catch(IllegalArgumentException ex) {
+        System.out.println(ex.getMessage());
+    }
+
 
         }
     }
 
-        static void viewemployee(ArrayList<Employee> emp, Scanner a) {
 
+
+
+static void viewemployee(ArrayList<Employee> emp, Scanner a) {
    
         System.out.println("Enter the employee id which we want to view:");
 
@@ -323,66 +356,215 @@ public class Employee_MS {
 }
 
 
-    static void updateemployee(ArrayList<Employee> emp, Scanner a) {
 
-    System.out.println("Enter the employee id which we want to update: ");
-    int ID = a.nextInt();
+    static void viewAllEmployees(ArrayList<Employee> emp) {
+
+        if(emp.isEmpty()) {
+            System.out.println("No employees available.");
+            return;
+        }
+
+        System.out.println("All Employee Details:");
+
+        for(int i = 0; i < emp.size(); i++) {
+
+            System.out.println("----------------------");
+            System.out.println("Employee ID: " + emp.get(i).getId());
+            System.out.println("Employee Name: " + emp.get(i).getName());
+            System.out.println("Employee Salary: " + emp.get(i).getSalary());
+
+            emp.get(i).displayRole();
+
+            if(emp.get(i) instanceof Manager) {
+                Manager m = (Manager) emp.get(i);
+                System.out.println("Team Size: " + m.getTeamSize());
+            }
+
+            if(emp.get(i) instanceof Developer) {
+                Developer d = (Developer) emp.get(i);
+                System.out.println("Programming Language: " + d.getProgrammingLanguage());
+            }
+        }
+    }
+
+
+
+    
+static void updateemployee(ArrayList<Employee> emp, Scanner a) {
+
+    System.out.println("Enter the employee id which we want to update:");
+
+    int ID;
+
+    try {
+        ID = a.nextInt();
+    }
+    catch(InputMismatchException e) {
+        System.out.println("Employee ID must be a number.");
+        a.nextLine();
+        return;
+    }
+
+    Employee current = null;
+
+    for(int i = 0; i < emp.size(); i++) {
+    if(emp.get(i).getId() == ID) {
+        current = emp.get(i);
+        break;
+    }
+}
+
+    if(current == null) {
+        System.out.println("Employee does not exist.");
+        return;
+    }
+
+    System.out.println("Enter the new id:");
+
+    int newID;
+
+    try {
+        newID = a.nextInt();
+    }
+    catch(InputMismatchException e) {
+        System.out.println("Employee ID must be a number.");
+        a.nextLine();
+        return;
+    }
+
+    if(newID <= 0) {
+        System.out.println("Employee ID must be greater than 0.");
+        return;
+    }
+
+    for(int i = 0; i < emp.size(); i++) {
+    if(emp.get(i).getId() == newID && emp.get(i) != current) {
+        System.out.println("Employee ID already exists.");
+        return;
+    }
+}
+
+    System.out.println("Enter the new name:");
+    a.nextLine();
+    String newName = a.nextLine();
+
+    if(newName.trim().isEmpty() || newName.matches("\\d+")) {
+        System.out.println("Invalid name.");
+        return;
+    }
+
+    System.out.println("Enter the new salary:");
+
+    float newSalary;
+
+    try {
+        newSalary = a.nextFloat();
+    }
+    catch(InputMismatchException e) {
+        System.out.println("Salary must be a number.");
+        a.nextLine();
+        return;
+    }
+
+    if(!Float.isFinite(newSalary) || newSalary < 0) {
+        System.out.println("Salary must be finite and non-negative.");
+        return;
+    }
+
+    int newTeamSize = 0;
+    String newLanguage = null;
+
+    if(current instanceof Manager) {
+        System.out.println("Enter the new team size:");
+
+        try {
+            newTeamSize = a.nextInt();
+        }
+        catch(InputMismatchException e) {
+            System.out.println("Team size must be a number.");
+            a.nextLine();
+            return;
+        }
+
+        if(newTeamSize < 0) {
+            System.out.println("Team size cannot be negative.");
+            return;
+        }
+    }
+
+    if(current instanceof Developer) {
+        System.out.println("Enter the new programming language:");
+        newLanguage = a.next();
+
+        if(newLanguage.trim().isEmpty()) {
+            System.out.println("Programming language cannot be empty.");
+            return;
+        }
+    }
+
+    // Apply changes only after validation succeeds.
+    
+    try {
+        current.setId(newID);
+        current.setName(newName);
+        current.setSalary(newSalary);
+
+        if(current instanceof Manager) {
+            Manager m = (Manager) current;
+            m.setTeamSize(newTeamSize);
+        }
+
+        if(current instanceof Developer) {
+            Developer d = (Developer) current;
+            d.setProgrammingLanguage(newLanguage);
+        }
+
+        System.out.println("Employee updated successfully.");
+    }
+    catch(IllegalArgumentException ex) {
+        System.out.println("Update failed: " + ex.getMessage());
+    }
+
+    }
+
+
+
+    
+static void deleteemployee(ArrayList<Employee> emp, Scanner a) {
+
+    System.out.println("Enter the Employee id which we want to delete:");
+
+    int ID;
+
+    try {
+        ID = a.nextInt();
+    }
+    catch(InputMismatchException e) {
+        System.out.println("Employee ID must be a number.");
+        a.nextLine();
+        return;
+    }
+
+    int found = 0;
 
     for(int i = 0; i < emp.size(); i++) {
 
         if(emp.get(i).getId() == ID) {
 
-            System.out.println("Enter the new id:");
-            emp.get(i).setId(a.nextInt());
+            emp.remove(i);
 
-            System.out.println("Enter the new name: ");
-            emp.get(i).setName(a.next());
+            System.out.println("Employee deleted");
 
-            System.out.println("Enter the new salary:");
-            emp.get(i).setSalary(a.nextFloat());
-
-
-            if(emp.get(i) instanceof Manager) {
-
-                Manager m = (Manager) emp.get(i);
-
-                System.out.println("Enter the new team size:");
-                m.setTeamSize(a.nextInt());
-            }
-
-
-            if(emp.get(i) instanceof Developer) {
-
-                Developer d = (Developer) emp.get(i);
-
-                System.out.println("Enter the new programming language:");
-                d.setProgrammingLanguage(a.next());
-            }
-
-
-            System.out.println("Employee updated");
+            found = 1;
+            break;
         }
+    }
+
+    if(found == 0) {
+        System.out.println("Employee does not exist.");
     }
 }
 
-
-    static void deleteemployee(ArrayList<Employee> emp, Scanner a) {
-
-        System.out.println("Enter the Employee id which we want to delete:");
-        int ID = a.nextInt();
-
-        for(int i = 0; i < emp.size(); i++) {
-
-            if(emp.get(i).getId() == ID) {
-
-                emp.remove(i);
-
-                System.out.println("Employee deleted");
-
-                break;
-            }
-        }
-    }
 
 
     public static void main(String[] args) {
@@ -400,7 +582,9 @@ public class Employee_MS {
             System.out.println("2. View employee");
             System.out.println("3. Update employee");
             System.out.println("4. Delete employee");
-            System.out.println("5. Exit");
+            System.out.println("5. View all employees");
+            System.out.println("6. Exit");
+           
 
 
            try {
@@ -464,18 +648,23 @@ public class Employee_MS {
 
                 case 5:
 
-                    System.out.println("Exit");
+                    viewAllEmployees(emp);
 
                     break;
 
+                case 6:
+
+                System.out.println("Exit");
+
+                break;
+                
 
                 default:
-
                     System.out.println("Invalid operation");
 
                     break;
             }
 
-        } while(op != 5);
+        } while(op != 6);
     }
 }
